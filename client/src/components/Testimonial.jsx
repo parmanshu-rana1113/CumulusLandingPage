@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import profile1 from "../../src/Assets/profile1.jpeg"
@@ -34,7 +34,7 @@ const testimonials = {
             image: profile3, // Replace with the actual image path
             review: "The platform’s simplicity and efficiency are unmatched. I was able to assign important documents to my family in just a few clicks. Now, I feel relieved knowing everything is in place for my loved ones.",
         },
-        // Add 3 more family member reviews here
+
     ],
     "Business Owners": [
         {
@@ -58,7 +58,7 @@ const testimonials = {
             image: profile6,
             review: "Managing my business documents has never been this easy. This platform’s intuitive design and secure features have saved me countless hours of work. Absolutely love it!",
         },
-        // Add 3 more business owner reviews here
+
     ],
     "Working Professionals": [
         {
@@ -89,28 +89,55 @@ const testimonials = {
 function Testimonial() {
     const [activeCategory, setActiveCategory] = useState("Family Members");
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
+    const [direction, setDirection] = useState('right');
+    const [isHovered, setIsHovered] = useState(false);
+
 
     const handleNext = () => {
+        setDirection("right");
         setCurrentIndex((prevIndex) =>
             prevIndex === testimonials[activeCategory].length - 1 ? 0 : prevIndex + 1
         );
     };
 
     const handlePrev = () => {
+        setDirection("left")
         setCurrentIndex((prevIndex) =>
             prevIndex === 0 ? testimonials[activeCategory].length - 1 : prevIndex - 1
         );
     };
 
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 3000);
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        let interval;
+        if (isMobile && !isHovered) {
+            interval = setInterval(handleNext, 4000);
+        }
+
+        return () => clearInterval(interval);
+    }, [isMobile, isHovered, activeCategory]);
+
+    const handleMouseEnter = () => setIsHovered(true);
+    const handleMouseLeave = () => setIsHovered(false);
+
+
+
     return (
         <>
-            <div className='w-full max-w-9xl bg-[#2E2E2E] py-4 ' 
-            style={{
-                backgroundImage: `url(${frame})`,
-                backgroundSize: "cover",
-                
-                backgroundPosition: "center",
-            }}
+            <div className='w-full max-w-9xl bg-[#2E2E2E] py-4 '
+                style={{
+                    backgroundImage: `url(${frame})`,
+                    backgroundSize: "cover",
+
+                    backgroundPosition: "center",
+                }}
             >
                 <div className="w-full   max-w-7xl mx-auto p-6  rounded-lg shadow-md   ">
                     <div className='flex justify-center pb-4'><span className='inline-flex justify-center p-2 bg-white rounded-2xl '>
@@ -139,22 +166,25 @@ function Testimonial() {
                     </div>
 
                     {/* Review Slider */}
-                    <div className="flex items-center justify-center">
+                    <div className="flex items-center justify-center cursor-pointer"
+                     onMouseEnter={handleMouseEnter} // Stop on hover
+                     onMouseLeave={handleMouseLeave} // Resume on mouse leave
+                    >
                         <div className="flex flex-col items-center text-center mx-4 p-6 rounded-lg">
 
                             <AnimatePresence mode='wait'>
                                 <motion.div
                                     key={currentIndex}
-                                    // initial={{ opacity: 0, x: 50 }}
-                                    // animate={{ opacity: 1, x: 0 }}
-                                    // exit={{ opacity: 0, x: -50 }}
-                                    // transition={{ duration: 0.5 }}
-
-
-                                    initial={{ opacity: 0, x: 0, scale: 0.7 }}
-                                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                                    exit={{ opacity: 0, x: -1, scale: 0.5 }}
-                                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                                    initial={{
+                                        opacity: 0,
+                                        x: direction === "right" ? 100 : -100, // Animation based on direction
+                                    }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{
+                                        opacity: 0,
+                                        x: direction === "right" ? -100 : 100, // Exit animation based on direction
+                                    }}
+                                    transition={{ duration: 0.5 }}
                                 >
                                     <p className="text-white  font-serif mb-4 ">
                                         {testimonials[activeCategory][currentIndex].review}
@@ -170,7 +200,7 @@ function Testimonial() {
                                             <p className="text-white text-md ml-2 font-semibold">
                                                 {testimonials[activeCategory][currentIndex].name}
                                             </p>
-                                            
+
                                         </div>
                                     </div>
                                 </motion.div>
@@ -182,6 +212,7 @@ function Testimonial() {
                     <div className='flex justify-between md:justify-around'>
                         <button
                             className="text-white"
+                            // onClick={handlePrev(left)}
                             onClick={handlePrev}
                         >
                             <ChevronLeft size={32} />
