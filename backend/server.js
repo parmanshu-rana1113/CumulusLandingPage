@@ -9,7 +9,10 @@ const faqRoutes = require('./routes/faqRoutes');
 const app = express();
 const PORT = process.env.PORT;
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://16.171.159.57:3001', 
+  credentials: true, 
+}));
 
 app.use("/api", assistanceRoutes);
 app.use("/api", faqRoutes);
